@@ -1,0 +1,34 @@
+{
+  "name": "whatsapp-auth",
+  "version": "1.0.0",
+  "description": "Open-Source Self-Hosted WhatsApp Authentication Platform",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File ./scripts/control.ps1",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"API,WORKER,DASH\" -c \"cyan.bold,green.bold,magenta.bold\" \"npm --workspace=@whatsapp-auth/api run dev\" \"npm --workspace=@whatsapp-auth/whatsapp-worker run dev\" \"npm --workspace=@whatsapp-auth/dashboard run dev\"",
+    "worker:diagnostic": "npm --workspace=@whatsapp-auth/whatsapp-worker run diagnostic",
+    "build": "npm --workspace=@whatsapp-auth/protocol run build && npm --workspace=@whatsapp-auth/security run build && npm --workspace=@whatsapp-auth/core run build && npm --workspace=@whatsapp-auth/db run build && npm --workspace=@whatsapp-auth/sdk run build && npm --workspace=@whatsapp-auth/api run build && npm --workspace=@whatsapp-auth/whatsapp-worker run build && npm --workspace=@whatsapp-auth/dashboard run build && npm --workspace=@whatsapp-auth/example-app run build",
+    "build:all": "powershell -ExecutionPolicy Bypass -File ./scripts/build-all.ps1",
+    "test": "vitest run",
+    "dev:all": "powershell -ExecutionPolicy Bypass -File ./scripts/start-local.ps1",
+    "docker:up": "powershell -ExecutionPolicy Bypass -File ./scripts/start-docker.ps1",
+    "docker:stop": "powershell -ExecutionPolicy Bypass -File ./scripts/stop-docker.ps1",
+    "docker:pause": "powershell -ExecutionPolicy Bypass -File ./scripts/pause-docker.ps1",
+    "docker:resume": "powershell -ExecutionPolicy Bypass -File ./scripts/resume-docker.ps1",
+    "dev:api": "npm --workspace=@whatsapp-auth/api run dev",
+    "dev:worker": "npm --workspace=@whatsapp-auth/whatsapp-worker run dev",
+    "dev:dashboard": "npm --workspace=@whatsapp-auth/dashboard run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
