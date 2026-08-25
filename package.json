@@ -6,14 +6,14 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "apps/*",
-    "examples/*"
+    "apps/*"
   ],
   "scripts": {
+    "postinstall": "npm --workspace=@whatsapp-auth/db run prisma:generate",
     "start": "powershell -ExecutionPolicy Bypass -File ./scripts/control.ps1",
     "dev": "concurrently -k -p \"[{name}]\" -n \"API,WORKER,DASH\" -c \"cyan.bold,green.bold,magenta.bold\" \"npm --workspace=@whatsapp-auth/api run dev\" \"npm --workspace=@whatsapp-auth/whatsapp-worker run dev\" \"npm --workspace=@whatsapp-auth/dashboard run dev\"",
     "worker:diagnostic": "npm --workspace=@whatsapp-auth/whatsapp-worker run diagnostic",
-    "build": "npm --workspace=@whatsapp-auth/protocol run build && npm --workspace=@whatsapp-auth/security run build && npm --workspace=@whatsapp-auth/core run build && npm --workspace=@whatsapp-auth/db run build && npm --workspace=@whatsapp-auth/sdk run build && npm --workspace=@whatsapp-auth/api run build && npm --workspace=@whatsapp-auth/whatsapp-worker run build && npm --workspace=@whatsapp-auth/dashboard run build && npm --workspace=@whatsapp-auth/example-app run build",
+    "build": "npm --workspace=@whatsapp-auth/protocol run build && npm --workspace=@whatsapp-auth/security run build && npm --workspace=@whatsapp-auth/core run build && npm --workspace=@whatsapp-auth/db run build && npm --workspace=@whatsapp-auth/sdk run build && npm --workspace=@whatsapp-auth/api run build && npm --workspace=@whatsapp-auth/whatsapp-worker run build && npm --workspace=@whatsapp-auth/dashboard run build",
     "build:all": "powershell -ExecutionPolicy Bypass -File ./scripts/build-all.ps1",
     "test": "vitest run",
     "dev:all": "powershell -ExecutionPolicy Bypass -File ./scripts/start-local.ps1",
