@@ -29,7 +29,7 @@ const defaultStatus: WhatsAppStatusData = {
   phoneNumber: null,
   platform: null,
   qrCode: null,
-  adapterMode: 'whatsapp-web.js',
+  adapterMode: 'baileys',
 };
 
 const WhatsAppStatusContext = createContext<WhatsAppStatusContextType>({
@@ -45,27 +45,17 @@ const WhatsAppStatusContext = createContext<WhatsAppStatusContextType>({
   logout: async () => {},
 });
 
-const CACHE_KEY = 'whatsapp_auth_live_session_cache';
-
 export function WhatsAppStatusProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<WhatsAppStatusData>(defaultStatus);
   const [loading, setLoading] = useState(false);
   const [pairing, setPairing] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const updateAndCache = useCallback((newData: Partial<WhatsAppStatusData>) => {
+  const updateStatus = useCallback((newData: Partial<WhatsAppStatusData>) => {
     setData((prev) => {
       const merged = { ...prev, ...newData };
-      if (merged.phoneNumber) {
-        merged.status = 'CONNECTED';
+      if (merged.phoneNumber && merged.status === 'CONNECTED') {
         merged.qrCode = null;
-      }
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify(merged));
-        } catch {
-          // ignore
-        }
       }
       return merged;
     });
@@ -75,34 +65,17 @@ export function WhatsAppStatusProvider({ children }: { children: React.ReactNode
     try {
       const res = await api.getWhatsAppStatus();
       if (res?.success && res.data) {
-        updateAndCache(res.data);
+        updateStatus(res.data);
         if (res.data.status === 'CONNECTED' || res.data.phoneNumber) {
           setPairing(false);
         }
       }
     } catch (e) {
-      console.warn('[WhatsAppContext] Poll error:', e);
+      console.warn('[WhatsAppContext] Status fetch error:', e);
     }
-  }, [updateAndCache]);
+  }, [updateStatus]);
 
   useEffect(() => {
-    // Restore from localStorage after client mount to prevent SSR hydration mismatch
-    try {
-      const saved = localStorage.getItem(CACHE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.phoneNumber) {
-          setData((prev) => ({
-            ...prev,
-            ...parsed,
-            status: 'CONNECTED',
-          }));
-        }
-      }
-    } catch {
-      // ignore
-    }
-
     fetchStatus();
 
     // Single global SSE connection for instant state broadcasts across all tabs
@@ -114,7 +87,7 @@ export function WhatsAppStatusProvider({ children }: { children: React.ReactNode
       es.addEventListener('whatsapp_status', (e: MessageEvent) => {
         try {
           const payload = JSON.parse(e.data);
-          updateAndCache({
+          updateStatus({
             status: payload.status,
             phoneNumber: payload.phoneNumber,
             qrCode: payload.status === 'CONNECTED' ? null : payload.qrCode,
@@ -131,13 +104,13 @@ export function WhatsAppStatusProvider({ children }: { children: React.ReactNode
       console.warn('[WhatsAppContext] SSE unavailable:', err);
     }
 
-    const interval = setInterval(fetchStatus, 1500);
+    const interval = setInterval(fetchStatus, 2000);
 
     return () => {
       if (es) es.close();
       clearInterval(interval);
     };
-  }, [fetchStatus, updateAndCache]);
+  }, [fetchStatus, updateStatus]);
 
   const handleStartPairing = async (visual: boolean = true) => {
     setPairing(true);
@@ -156,16 +129,7 @@ export function WhatsAppStatusProvider({ children }: { children: React.ReactNode
     }
     setLoggingOut(true);
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(CACHE_KEY);
-      }
-      setData({
-        status: 'DISCONNECTED',
-        phoneNumber: null,
-        platform: null,
-        qrCode: null,
-        adapterMode: data.adapterMode,
-      });
+      setData(defaultStatus);
       await api.logoutWhatsApp();
       await fetchStatus();
     } catch (e) {
@@ -175,7 +139,7 @@ export function WhatsAppStatusProvider({ children }: { children: React.ReactNode
     }
   };
 
-  const isConnected = data.status === 'CONNECTED' || Boolean(data.phoneNumber);
+  const isConnected = data.status === 'CONNECTED' && Boolean(data.phoneNumber);
 
   return (
     <WhatsAppStatusContext.Provider
