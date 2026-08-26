@@ -226,11 +226,22 @@ export function registerAdminRoutes(
     const workerStatus = await workerClient.getStatus();
     const session = await waSessionRepo.getSession('default');
 
+<<<<<<< HEAD
     const isLiveConnected = workerStatus.status === 'CONNECTED' || workerStatus.status === 'AUTHENTICATED';
     const status = isLiveConnected ? 'CONNECTED' : (workerStatus.status || 'DISCONNECTED');
     const phoneNumber = isLiveConnected ? (workerStatus.phoneNumber || session?.phoneNumber || null) : null;
     const platform = isLiveConnected ? (workerStatus.platform || session?.platform || null) : null;
     const qrCode = !isLiveConnected ? (workerStatus.qrCode || null) : null;
+=======
+    let status = workerStatus.status || 'DISCONNECTED';
+    let phoneNumber = workerStatus.phoneNumber || session?.phoneNumber || null;
+    const platform = workerStatus.platform || session?.platform || null;
+    const qrCode = workerStatus.qrCode || null;
+
+    if (workerStatus.status === 'CONNECTED' || workerStatus.status === 'AUTHENTICATED' || (session?.status === 'CONNECTED' && phoneNumber)) {
+      status = 'CONNECTED';
+    }
+>>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
 
     return {
       success: true,
@@ -239,12 +250,20 @@ export function registerAdminRoutes(
         phoneNumber,
         platform,
         qrCode,
+<<<<<<< HEAD
         adapterMode: workerStatus.adapterMode || 'baileys',
+=======
+        adapterMode: workerStatus.adapterMode || 'mock',
+>>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
       },
     };
   });
 
+<<<<<<< HEAD
   // On-demand start pairing (generates fresh pairing QR)
+=======
+  // On-demand start pairing (opens visible Chrome window with official WhatsApp Web)
+>>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
   server.post('/api/v1/admin/whatsapp/start-pairing', async (request) => {
     const body = (request.body as { visual?: boolean }) || {};
     const result = await workerClient.startPairing(body.visual !== false);
@@ -258,7 +277,10 @@ export function registerAdminRoutes(
         status: 'DISCONNECTED' as any,
         phoneNumber: null,
         qrCode: null,
+<<<<<<< HEAD
         platform: null,
+=======
+>>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
       });
     } catch {
       // ignore

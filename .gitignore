@@ -16,6 +16,7 @@ apps/whatsapp-worker/.baileys_auth/
 .wwebjs_cache/
 session.json
 
+<<<<<<< HEAD
 # Environment variables
 .env
 .env.*
@@ -24,6 +25,8 @@ session.json
 .env.production
 !.env.example
 
+=======
+>>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
 # Development artifacts & dumps
 folder-structure.txt
 
@@ -51,3 +54,12 @@ Thumbs.db
 
 # Coverage
 coverage/
+<<<<<<< HEAD
+=======
+
+# TypeScript build metadata
+*.tsbuildinfo
+
+# Vercel deployment metadata
+.vercel/
+>>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
