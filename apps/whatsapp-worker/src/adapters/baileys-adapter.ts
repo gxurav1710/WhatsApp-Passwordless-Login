@@ -71,10 +71,7 @@ export class BaileysAdapter implements IWhatsAppAdapter {
   private sock: WASocket | null = null;
   private isConnecting: boolean = false;
   private reconnectAttempts: number = 0;
-<<<<<<< HEAD
   private reconnectTimer: NodeJS.Timeout | null = null;
-=======
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
   private processedMessageIds = new Set<string>();
   
   // Cache active chat JID & message object for instant quoted reply delivery (matching diagnostic.ts)
@@ -90,7 +87,6 @@ export class BaileysAdapter implements IWhatsAppAdapter {
 
   private loadSavedSessionInfo(): void {
     try {
-<<<<<<< HEAD
       const infoFile = join(this.sessionDataPath, 'session-info.json');
       if (existsSync(infoFile)) {
         const raw = readFileSync(infoFile, 'utf8');
@@ -102,28 +98,6 @@ export class BaileysAdapter implements IWhatsAppAdapter {
             platform: 'baileys-multi-device',
           };
           console.log(`[Baileys] 💾 Restored cached identity for ${this.clientInfo.phoneNumber} from ${infoFile}`);
-=======
-      const candidates = [
-        join(this.sessionDataPath, 'session-info.json'),
-        join(process.cwd(), '.baileys_auth', 'session-info.json'),
-        join(process.cwd(), 'apps', 'whatsapp-worker', '.baileys_auth', 'session-info.json'),
-        join(process.cwd(), '..', '.baileys_auth', 'session-info.json'),
-      ];
-
-      for (const infoFile of candidates) {
-        if (existsSync(infoFile)) {
-          const raw = readFileSync(infoFile, 'utf8');
-          const parsed = JSON.parse(raw);
-          if (parsed?.phoneNumber) {
-            this.clientInfo = {
-              phoneNumber: parsed.phoneNumber,
-              pushname: parsed.pushname || 'WhatsApp User',
-              platform: 'baileys-multi-device',
-            };
-            console.log(`[Baileys] 💾 Restored cached identity for ${this.clientInfo.phoneNumber} from ${infoFile}`);
-            break;
-          }
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
         }
       }
     } catch {
@@ -133,34 +107,15 @@ export class BaileysAdapter implements IWhatsAppAdapter {
 
   private saveSessionInfo(): void {
     try {
-<<<<<<< HEAD
       if (this.clientInfo) {
         const infoFile = join(this.sessionDataPath, 'session-info.json');
         writeFileSync(infoFile, JSON.stringify(this.clientInfo, null, 2), 'utf8');
-=======
-      const paths = [
-        join(this.sessionDataPath, 'session-info.json'),
-        join(process.cwd(), '.baileys_auth', 'session-info.json'),
-        join(process.cwd(), 'apps', 'whatsapp-worker', '.baileys_auth', 'session-info.json'),
-      ];
-      if (this.clientInfo) {
-        for (const p of paths) {
-          try {
-            const dir = join(p, '..');
-            if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-            writeFileSync(p, JSON.stringify(this.clientInfo, null, 2), 'utf8');
-          } catch {
-            // ignore
-          }
-        }
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
       }
     } catch {
       // ignore
     }
   }
 
-<<<<<<< HEAD
   wipeSessionData(): void {
     try {
       if (existsSync(this.sessionDataPath)) {
@@ -173,15 +128,12 @@ export class BaileysAdapter implements IWhatsAppAdapter {
     }
   }
 
-=======
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
   async initialize(): Promise<void> {
     console.log('[Baileys] 🚀 Initializing Baileys WhatsApp WebSocket transport...');
     await this.startSocket();
   }
 
   async startPairing(): Promise<void> {
-<<<<<<< HEAD
     console.log('[Baileys] 🔗 Start pairing requested. Wiping stale session & generating fresh QR code...');
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -205,29 +157,15 @@ export class BaileysAdapter implements IWhatsAppAdapter {
     this.rawQr = null;
     this.isConnecting = false;
     this.reconnectAttempts = 0;
-=======
-    console.log('[Baileys] 🔗 Start pairing requested. Reconnecting socket...');
-    if (this.sock) {
-      try {
-        this.sock.end(undefined);
-      } catch {
-        // ignore
-      }
-      this.sock = null;
-    }
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
     await this.startSocket();
   }
 
   private async startSocket(): Promise<void> {
-<<<<<<< HEAD
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
 
-=======
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
     if (this.isConnecting) {
       console.log('[Baileys] Connection attempt already in progress. Skipping duplicate start.');
       return;
@@ -242,11 +180,7 @@ export class BaileysAdapter implements IWhatsAppAdapter {
       const { state, saveCreds } = await useMultiFileAuthState(this.sessionDataPath);
       const logger = pino({ level: 'silent' });
 
-<<<<<<< HEAD
       const socketInstance = makeWASocket({
-=======
-      this.sock = makeWASocket({
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
         auth: {
           creds: state.creds,
           keys: makeCacheableSignalKeyStore(state.keys, logger),
@@ -258,7 +192,6 @@ export class BaileysAdapter implements IWhatsAppAdapter {
         syncFullHistory: false,
       });
 
-<<<<<<< HEAD
       this.sock = socketInstance;
 
       socketInstance.ev.on('creds.update', (creds) => {
@@ -269,11 +202,6 @@ export class BaileysAdapter implements IWhatsAppAdapter {
       socketInstance.ev.on('connection.update', async (update) => {
         if (this.sock !== socketInstance) return;
 
-=======
-      this.sock.ev.on('creds.update', saveCreds);
-
-      this.sock.ev.on('connection.update', async (update) => {
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
         const { connection, lastDisconnect, qr } = update;
 
         // 1. QR code received
@@ -314,20 +242,12 @@ export class BaileysAdapter implements IWhatsAppAdapter {
           this.qrCode = null;
           this.rawQr = null;
 
-<<<<<<< HEAD
           const rawId = socketInstance.user?.id || socketInstance.user?.lid || '';
-=======
-          const rawId = this.sock?.user?.id || this.sock?.user?.lid || '';
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
           const phone = normalizeJidToE164(rawId) || this.clientInfo?.phoneNumber || null;
 
           this.clientInfo = {
             phoneNumber: phone,
-<<<<<<< HEAD
             pushname: socketInstance.user?.name || 'WhatsApp User',
-=======
-            pushname: this.sock?.user?.name || 'WhatsApp User',
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
             platform: 'baileys-multi-device',
           };
 
@@ -337,7 +257,6 @@ export class BaileysAdapter implements IWhatsAppAdapter {
           this.emitter.emit('ready', this.clientInfo);
         } else if (connection === 'close') {
           const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
-<<<<<<< HEAD
           const isLoggedOut = statusCode === DisconnectReason.loggedOut || statusCode === 401 || statusCode === 403;
           const isBadSession = statusCode === DisconnectReason.badSession || statusCode === 500;
           const shouldReconnect = !isLoggedOut && !isBadSession;
@@ -346,20 +265,11 @@ export class BaileysAdapter implements IWhatsAppAdapter {
 
           if (isLoggedOut || isBadSession) {
             console.log('[Baileys] ⚠️ Session is invalid or logged out. Cleaning stored credentials...');
-=======
-          const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-
-          console.log(`[Baileys] 🔴 Connection closed. Status code: ${statusCode}, shouldReconnect: ${shouldReconnect}`);
-
-          if (statusCode === DisconnectReason.loggedOut) {
-            console.log('[Baileys] ⚠️ Device was logged out. Cleaning stored credentials...');
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
             this.wipeSessionData();
             this.clientInfo = null;
             this.qrCode = null;
             this.rawQr = null;
             this.setStatus(WhatsAppConnectionStatus.DISCONNECTED);
-<<<<<<< HEAD
             this.emitter.emit('disconnected', 'Logged out or bad session');
 
             console.log('[Baileys] 🔄 Starting fresh socket for pairing QR code...');
@@ -368,9 +278,6 @@ export class BaileysAdapter implements IWhatsAppAdapter {
                 console.error('[Baileys] Error starting fresh socket:', err);
               });
             }, 800);
-=======
-            this.emitter.emit('disconnected', 'Logged out');
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
           } else {
             this.setStatus(WhatsAppConnectionStatus.DISCONNECTED);
             this.emitter.emit('disconnected', `Disconnected (${statusCode || 'Unknown reason'})`);
@@ -379,11 +286,7 @@ export class BaileysAdapter implements IWhatsAppAdapter {
               this.reconnectAttempts++;
               const delayMs = Math.min(this.reconnectAttempts * 2000, 10000);
               console.log(`[Baileys] 🔄 Scheduling auto-reconnect in ${delayMs}ms (attempt ${this.reconnectAttempts})...`);
-<<<<<<< HEAD
               this.reconnectTimer = setTimeout(() => {
-=======
-              setTimeout(() => {
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
                 this.startSocket().catch((err) => {
                   console.error('[Baileys] Error during auto-reconnect:', err);
                 });
@@ -394,12 +297,8 @@ export class BaileysAdapter implements IWhatsAppAdapter {
       });
 
       // 3. Inbound message handling via messages.upsert
-<<<<<<< HEAD
       socketInstance.ev.on('messages.upsert', async ({ messages, type }) => {
         if (this.sock !== socketInstance) return;
-=======
-      this.sock.ev.on('messages.upsert', async ({ messages, type }) => {
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
         if (type !== 'notify' && type !== 'append') return;
 
         for (const msg of messages) {
@@ -465,7 +364,6 @@ export class BaileysAdapter implements IWhatsAppAdapter {
     }
   }
 
-<<<<<<< HEAD
   async logout(): Promise<void> {
     console.log('[Baileys] 🛑 User requested logout. Terminating session & generating fresh QR...');
     if (this.reconnectTimer) {
@@ -479,36 +377,10 @@ export class BaileysAdapter implements IWhatsAppAdapter {
     if (oldSock) {
       try {
         await oldSock.logout();
-=======
-  private wipeSessionData(): void {
-    const sessionPaths = [
-      this.sessionDataPath,
-      join(process.cwd(), '.baileys_auth'),
-      join(process.cwd(), 'apps', 'whatsapp-worker', '.baileys_auth'),
-      join(process.cwd(), '..', '.baileys_auth'),
-    ];
-    for (const p of sessionPaths) {
-      try {
-        if (existsSync(p)) {
-          rmSync(p, { recursive: true, force: true });
-        }
-      } catch {
-        // ignore
-      }
-    }
-  }
-
-  async logout(): Promise<void> {
-    console.log('[Baileys] 🔴 Logging out Baileys session and wiping credentials...');
-    if (this.sock) {
-      try {
-        await this.sock.logout();
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
       } catch {
         // ignore
       }
       try {
-<<<<<<< HEAD
         oldSock.end(undefined);
       } catch {
         // ignore
@@ -522,24 +394,10 @@ export class BaileysAdapter implements IWhatsAppAdapter {
     this.isConnecting = false;
     this.reconnectAttempts = 0;
     this.setStatus(WhatsAppConnectionStatus.DISCONNECTED);
-=======
-        this.sock.end(undefined);
-      } catch {
-        // ignore
-      }
-      this.sock = null;
-    }
-    this.wipeSessionData();
-    this.setStatus(WhatsAppConnectionStatus.DISCONNECTED);
-    this.clientInfo = null;
-    this.qrCode = null;
-    this.rawQr = null;
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
     this.emitter.emit('disconnected', 'Logged out');
 
     // Immediately start fresh pairing socket so a new QR is ready for the dashboard
     setTimeout(() => {
-<<<<<<< HEAD
       this.startSocket().catch((err) => {
         console.error('[Baileys] Error starting fresh pairing socket after logout:', err);
       });
@@ -548,26 +406,6 @@ export class BaileysAdapter implements IWhatsAppAdapter {
 
   async disconnect(): Promise<void> {
     await this.logout();
-=======
-      this.startSocket().catch(() => {});
-    }, 600);
-  }
-
-  async disconnect(): Promise<void> {
-    if (this.sock) {
-      try {
-        this.sock.end(undefined);
-      } catch {
-        // ignore
-      }
-      this.sock = null;
-    }
-    this.setStatus(WhatsAppConnectionStatus.DISCONNECTED);
-    this.clientInfo = null;
-    this.qrCode = null;
-    this.rawQr = null;
-    this.emitter.emit('disconnected', 'Manual disconnect');
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
   }
 
   getStatus(): WhatsAppConnectionStatus {
@@ -579,12 +417,9 @@ export class BaileysAdapter implements IWhatsAppAdapter {
   }
 
   getClientInfo(): WhatsAppClientInfo | null {
-<<<<<<< HEAD
     if (this.status !== WhatsAppConnectionStatus.CONNECTED) {
       return null;
     }
-=======
->>>>>>> 5b4b12f0f680677fb58127b8ad67d08e60b2851c
     return this.clientInfo;
   }
 
