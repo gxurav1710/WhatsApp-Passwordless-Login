@@ -6,15 +6,16 @@ export class WhatsAppAuthClient {
   /**
    * @param {Object} config
    * @param {string} config.baseUrl - WhatsApp Auth Server URL (e.g. http://localhost:4000 or Cloudflare Tunnel)
-   * @param {string} config.clientId - OAuth 2.0 Client ID
+   * @param {string} [config.clientId] - OAuth 2.0 Client ID
    * @param {string} [config.clientSecret] - OAuth 2.0 Client Secret (optional for public clients)
    */
-  constructor(config) {
-    if (!config.baseUrl) throw new Error('WhatsAppAuthClient: baseUrl is required');
-    if (!config.clientId) throw new Error('WhatsAppAuthClient: clientId is required');
+  constructor(config = {}) {
+    if (!config.baseUrl) {
+      throw new Error('WhatsAppAuthClient: baseUrl is required (e.g. http://localhost:4000)');
+    }
 
     this.baseUrl = config.baseUrl.replace(/\/+$/, '');
-    this.clientId = config.clientId;
+    this.clientId = config.clientId || '';
     this.clientSecret = config.clientSecret;
   }
 
@@ -56,6 +57,12 @@ export class WhatsAppAuthClient {
    * @param {string} [params.codeChallengeMethod] - 'S256' or 'plain' (optional)
    */
   async initiate(params) {
+    if (!this.clientId) {
+      throw new Error(
+        'WhatsAppAuthClient: AUTH_CLIENT_ID is not configured. Please create an application in your WhatsApp Auth Dashboard (http://localhost:3000) and set AUTH_CLIENT_ID in your .env file.'
+      );
+    }
+
     const url = `${this.baseUrl}/api/v1/auth/initiate`;
     let response;
     try {
@@ -98,6 +105,12 @@ export class WhatsAppAuthClient {
    * @param {string} [params.codeVerifier] - PKCE verifier if PKCE was used
    */
   async exchangeCode(params) {
+    if (!this.clientId) {
+      throw new Error(
+        'WhatsAppAuthClient: AUTH_CLIENT_ID is not configured. Please create an application in your WhatsApp Auth Dashboard (http://localhost:3000) and set AUTH_CLIENT_ID in your .env file.'
+      );
+    }
+
     const url = `${this.baseUrl}/api/v1/auth/token`;
     let response;
     try {

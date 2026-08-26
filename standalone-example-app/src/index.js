@@ -24,7 +24,16 @@ const defaultEmail = process.env.DEFAULT_EMAIL || '';
 const defaultPhone = process.env.DEFAULT_PHONE || '';
 
 if (!authClientId) {
-  console.warn('[CONFIG WARNING] ⚠️ AUTH_CLIENT_ID is not set in .env! Please set AUTH_CLIENT_ID in your .env file.');
+  console.log('\n============================================================');
+  console.log('  ⚠️  [CONFIG NOTICE] AUTH_CLIENT_ID is not configured in .env');
+  console.log('------------------------------------------------------------');
+  console.log('  To enable WhatsApp authentication:');
+  console.log('  1. Open your WhatsApp Auth Dashboard at http://localhost:3000');
+  console.log('  2. Navigate to "Applications" -> "Create Application"');
+  console.log('  3. Copy your Client ID and Client Secret into .env:');
+  console.log('     AUTH_CLIENT_ID=wa_client_...');
+  console.log('     AUTH_CLIENT_SECRET=wa_sec_...');
+  console.log('============================================================\n');
 }
 
 // Initialize Standalone WhatsApp Auth Client purely from environment configuration
@@ -49,6 +58,18 @@ app.get('/', (req, res) => {
   if (session) {
     return res.redirect('/dashboard');
   }
+
+  const configNoticeHtml = !authClientId
+    ? `
+    <div style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; text-align: left;">
+      <div style="color: #facc15; font-weight: 700; font-size: 13px; margin-bottom: 4px;">⚠️ Application Setup Required</div>
+      <div style="color: #cbd5e1; font-size: 12px; line-height: 1.5;">
+        <strong>AUTH_CLIENT_ID</strong> is not configured in <code>.env</code>.<br />
+        Open your <a href="http://localhost:3000" target="_blank" style="color: #38bdf8; text-decoration: underline;">Dashboard</a>, create an application, and add your Client ID to <code>.env</code>.
+      </div>
+    </div>
+    `
+    : '';
 
   res.send(`
 <!DOCTYPE html>
@@ -200,6 +221,8 @@ app.get('/', (req, res) => {
     <h1>Sign in with WhatsApp</h1>
     <p>Secure, passwordless WhatsApp authentication collecting verified user identity.</p>
 
+    ${configNoticeHtml}
+
     <form id="login-form">
       <div class="input-group">
         <label for="fullName">Full Name</label>
@@ -242,11 +265,12 @@ app.get('/', (req, res) => {
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const fullName = document.getElementById('fullName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const phone = document.getElementById('phone').value.trim();
       submitBtn.disabled = true;
-      submitBtn.innerText = 'Generating Challenge...';
+      submitBtn.innerText = 'Initiating WhatsApp Auth...';
+
+      const fullName = document.getElementById('fullName').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
 
       try {
         const res = await fetch('/api/auth/start', {
@@ -255,16 +279,9 @@ app.get('/', (req, res) => {
           body: JSON.stringify({ fullName, email, phone }),
         });
 
-        const rawText = await res.text();
-        let data;
-        try {
-          data = JSON.parse(rawText);
-        } catch {
-          throw new Error('Server returned an unexpected non-JSON response (' + res.status + ' ' + res.statusText + '). Please verify that your Auth Server is running and that AUTH_API_URL is reachable.');
-        }
-
+        const data = await res.json();
         if (!res.ok || !data.success) {
-          throw new Error(data.error || 'Failed to start login (' + res.status + ')');
+          throw new Error(data.error || 'Failed to start authentication');
         }
 
         const deepLink = data.whatsappDeepLink;
@@ -312,6 +329,13 @@ app.get('/', (req, res) => {
 // 2. Initiate Auth Endpoint
 app.post('/api/auth/start', async (req, res) => {
   try {
+    if (!authClientId) {
+      return res.status(400).json({
+        success: false,
+        error: 'AUTH_CLIENT_ID is missing. Please register an application in your WhatsApp Auth Dashboard (http://localhost:3000) and set AUTH_CLIENT_ID in your .env file.',
+      });
+    }
+
     const { fullName, email, phone } = req.body;
     const result = await authClient.initiate({
       fullName,

@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "node --watch src/index.js"
+    "dev": "node --watch src/index.js",
+    "build": "echo [INFO] Standalone Node.js app is ready to run directly with node src/index.js (no compilation required)"
   },
   "keywords": [
     "whatsapp-auth",

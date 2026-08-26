@@ -6,28 +6,46 @@ A completely **self-contained, standalone web application** demonstrating passwo
 
 ---
 
-## ⚡ Quick Start (Run in 3 Steps)
+## ⚡ Quick Start (Run in 4 Steps)
 
-### 1. Copy Folder Anywhere
-Copy the `standalone-example-app` folder to any directory or drive of your choice, for example:
+### 1. Copy Folder Anywhere (Optional)
+You can run this app directly in this folder or copy `standalone-example-app` to any directory or server:
 * `C:\Projects\my-whatsapp-app`
-* `D:\standalone-example-app`
 * `/home/user/my-app`
 
-### 2. Install Standard Dependencies
-Open your terminal in that folder and run:
+### 2. Install Dependencies
+Open your terminal inside `standalone-example-app` and run:
 ```bash
 npm install
 ```
 
+> **Note:** A build step (`npm run build`) is **not required** because this standalone application runs directly with standard Node.js (`node src/index.js`).
+
 ### 3. Configure `.env`
-Ensure your `.env` file points to your WhatsApp Auth Core Server:
+Copy the environment template:
+```bash
+# Windows
+copy .env.example .env
+
+# macOS / Linux
+cp .env.example .env
+```
+
+Edit your `.env` file with your WhatsApp Auth Server and registered Application credentials:
 ```env
 PORT=5000
 AUTH_API_URL=http://localhost:4000
-AUTH_CLIENT_ID=wa_client_15fde3b2ff8c8b25d9d9b480
-AUTH_CLIENT_SECRET=wa_sec_XrAmOqeAVziXPNJfIA8VyzpvadzP7znULy7LkVDZZ9I
+AUTH_CLIENT_ID=YOUR_CLIENT_ID
+AUTH_CLIENT_SECRET=YOUR_CLIENT_SECRET
+REDIRECT_URI=http://localhost:5000/auth/callback
 ```
+
+#### How to get your Client ID & Secret:
+1. Ensure your WhatsApp Auth Server & Dashboard are running (`http://localhost:3000`).
+2. Navigate to **Applications** → **Create Application**.
+3. Set **Application Name**: `Standalone Example App`.
+4. Set **Redirect URI**: `http://localhost:5000/auth/callback`.
+5. Copy the generated **Client ID** and **Client Secret** into your `.env` file.
 
 ### 4. Start the Application
 ```bash
@@ -43,7 +61,6 @@ Open your browser at **[http://localhost:5000](http://localhost:5000)**.
 
 ```text
 standalone-example-app/
-├── .env                          # App & Auth Server configuration
 ├── .env.example                  # Template configuration
 ├── .gitignore                    # Git exclusions
 ├── package.json                  # Standalone NPM package definition
